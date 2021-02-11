@@ -1,6 +1,6 @@
 class Point {
     constructor(x,y,r = 10, color)  {
-        this.mass = 1; //kg
+        this.mass = 30; //kg
         this.pos = createVector(x, y);
         this.vel = createVector(0,0); // m per s squared
         this.acc = createVector(0,0); //m per s
@@ -8,15 +8,17 @@ class Point {
         this.c = color;
 
         //bindings between
-        this.k = 0.2; //700
-        this.b = 1.5; //2
-        this.L0 = 50; //spring at rest
+        this.k = 2;
+        this.b = 2; 
+        this.L0 = 0; //spring at rest
         this.neighbors = [];
 
         //Temporary
         this.positionvalues = []; // Logga värden?
 
         this.log = false;
+
+        this.oldPosition = this.pos;
     }
     
     calculateInternalForce() {
@@ -79,6 +81,7 @@ class Point {
 
     }
     update() {
+        this.oldPosition = this.pos;
         this.render();
         //this.acc.set(1/this.mass,1/this.mass); 
         let Fint = this.calculateInternalForce();
@@ -98,17 +101,19 @@ class Point {
         //console.log("forcex: y", forceSum.y);
         //console.log("force sum", forceSum);
 
+
+        /* This will be calculated in the main
         this.acc.x = 1/this.mass * forceSum.x;
         this.acc.y = 1/this.mass * forceSum.y;
 
-        let h = 0.01;
+        let h = 0.28;
         this.acc.mult(h);
         this.vel.add(this.acc); //this.vel = this.vel + this.acc*h
-
-        //this.vel.mult(h); //FUNKA DÅÅÅEÅEÅEÅE :(
+        
+        this.vel.mult(h); //ÄKTA PRIMA VARA<3 EULER
         this.pos.add(this.vel);
 
-
+        */
         //this.vel = this.eulerIntegration(this.vel, this.acc);
         //this.pos = this.eulerIntegration(this.pos, this.vel);
         //this.positionvalues.add([this.pos.x, this.pos.y]); // Logga värden?
@@ -132,8 +137,6 @@ class Point {
             this.drawLine(this.neighbors[n]);
         }
         ellipse(this.pos.x, this.pos.y, this.radius);
-
-
     }
 
     renderHelperArrows() {
