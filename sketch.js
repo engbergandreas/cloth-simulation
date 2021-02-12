@@ -8,15 +8,16 @@
  const SPACING = 40;
  const INITIAL_X = 400;
  const INITIAL_Y = 100;
+ const RENDERFLEX = false;
 
  //wind
  let WIND;
 
  //--------- Particle settings --------
-const ParticleMass = 5;
-const SpringConstant = 10;
-const DampingConstant = 5;
-const SpringAtRest = 50;
+const ParticleMass = 10;
+const SpringConstant = 15;
+const DampingConstant = 10;
+const SpringAtRest = SPACING + 10;
 const ParticleRadius = 5;
 
 const TIMESTEP = 0.1; //JAMES BOND <3
@@ -26,9 +27,10 @@ const TIMESTEP = 0.1; //JAMES BOND <3
  
 
 function setup() {
-	createCanvas(1200, 900);
+	createCanvas(windowWidth,windowHeight);
 	
-	WIND = createVector(7, -25);
+	WIND = createVector((Math.random() - 0.5 ) * 40, 0)
+
 
 	//Create new cloth
 	cloth = new Cloth(ROWS, COLS, INITIAL_X, INITIAL_Y, SPACING);
@@ -38,18 +40,24 @@ function setup() {
 	for(let i = 0; i < test.neighbors.length; i++) {
 		console.log(test.neighbors[i], test.type[i])
 	}
+	test.neighbors.push(30);
+	test.type.push("hej");
+	console.log(test)
 }
 
 function mousePressed() {
 	//pilot();
 	//facit();
+
 }
 
 function draw() {
+
 	background(230)
 	line(0, 100, width, 100);
 	line(100, 50, 100, height);
 	cloth.updateCloth();
+
 }
 
 

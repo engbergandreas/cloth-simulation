@@ -14,7 +14,7 @@ class Point {
         this.k = SpringConstant;
         this.b = DampingConstant; 
         this.L0 = SpringAtRest; 
-        this.neighbors = []; 
+        this.neighbors = {points: [], typeOfSpring: []}; 
     }
 
     calculateForce() {
@@ -31,20 +31,30 @@ class Point {
         
     calculateInternalForce() {
         let sum = createVector();
-       
-        for(let i = 0; i < this.neighbors.length; i++) {
+        let displacement;
+        for(let i = 0; i < this.neighbors.points.length; i++) {
             //spring force calculations
             let springForce = createVector();
-            //p1p2  => p2 - p1 
-            let L = p5.Vector.sub(this.pos, this.neighbors[i].pos);
+            //p1p2  => p2 - p1
+            
+            let L = p5.Vector.sub(this.pos, this.neighbors.points[i].pos);
             let length = L.mag();
 
             if(length <= 0.000001) { //check for epsilon, avoid dividing by 0
                 springForce.mult(0); // => force = [0;0]
             }
             else {
+                if(this.neighbors.typeOfSpring[i] === "structural") {
+                    displacement = length - this.L0;
+                    this.k = SpringConstant;
+                }
+                else if(this.neighbors.typeOfSpring[i] === "flexion") {
+                    displacement = length - 2*this.L0;
+                    this.k /= 4;
+                }
+                
                 let normalized = L.normalize();
-                let displacement = length - this.L0;
+                //let displacement = length - this.L0;
 
                 springForce.x = this.k * displacement*normalized.x;
                 springForce.y = this.k * displacement*normalized.y;
@@ -52,7 +62,7 @@ class Point {
             sum.add(springForce);
 
             //damping forces calc
-            let dampForce = p5.Vector.sub(this.vel, this.neighbors[i].vel);
+            let dampForce = p5.Vector.sub(this.vel, this.neighbors.points[i].vel);
             dampForce.mult(this.b);
             sum.add(dampForce);
         }
@@ -60,9 +70,11 @@ class Point {
         return sum;
     }
 
-    addNeighbors(points) {
-        for(let i = 0; i < points.length; i++) {
-            this.neighbors.push(points[i]);
+    addNeighbors(obj) {
+        for(let i = 0; i < obj.points.length; i++) {
+            this.neighbors.points.push(obj.points[i]);
+            this.neighbors.typeOfSpring.push(obj.typeOfSpring[i]);
+
         }
     }
 
@@ -80,7 +92,13 @@ class Point {
         this.eulerIntegration(this.pos, this.vel, TIMESTEP);
     }
 
-    drawLine(p2) {
+    drawLine(p2, color) {
+        //if()
+        color = !color ? 'black' : color // if(!color) color ="red" else color = color;
+        
+        //console.log(color)
+        //c = color(color)
+        stroke(color)
         line(this.pos.x, this.pos.y, p2.pos.x, p2.pos.y);
     }
     

@@ -15,7 +15,7 @@ class Cloth {
             }   
         }
         this.connectNeighbors();
-        //this.connectFlexionNeighbors();
+        this.connectFlexionNeighbors();
         this.checkStaticPoints();
     }
 
@@ -63,6 +63,15 @@ class Cloth {
                 if(c != this.cols -1) {
                     matrix[r][c].drawLine(matrix[r][c+1]); //right
                 }
+                
+                if(RENDERFLEX) {
+                    if(r+2 < this.rows) {
+                        matrix[r][c].drawLine(matrix[r+2][c], "red"); //right
+                    }
+                    if(c+2 < this.cols) {
+                        matrix[r][c].drawLine(matrix[r][c+2], "red"); //right
+                    }
+                }
             }
         }        
     }
@@ -70,7 +79,7 @@ class Cloth {
     connectNeighbors() {
         for(let r = 0; r < this.rows; r++) {
             for(let c = 0; c < this.cols; c++) {
-                let neighbors = [];
+                let neighbors = {points: [], typeOfSpring : []};
                 //console.log("row", r, "col", c);
                 for(let i = r - 1; i <= r + 1; i++) {
                     for(let j = c - 1; j <= c + 1; j++) {
@@ -90,7 +99,8 @@ class Cloth {
                         //Else add neighbor
                         else {
                             //console.log("pushing"); 
-                            neighbors.push(matrix[i][j]);
+                            neighbors.points.push(matrix[i][j]);
+                            neighbors.typeOfSpring.push("structural");
                         }
                     }
                 }
@@ -103,16 +113,26 @@ class Cloth {
     connectFlexionNeighbors(){
         for(let r = 0; r < this.rows; r++) {
             for(let c = 0; c < this.cols; c++) {
-                let neighbors = [];
+                let neighbors = {points: [], typeOfSpring : []};
 
-                if(r-2 > 0)
-                    neighbors.push(matrix[r-2][c]); //2 up
-                if(r+2 < this.rows)
-                    neighbors.push(matrix[r+2][c]); //2 down
-                if(c-2 > 0) 
-                    neighbors.push(matrix[r][c-2]); //2 left
-                if(c+2 < this.cols)
-                    neighbors.push(matrix[r][c+2]) //2 right
+
+                if(r-2 > 0) { 
+                    neighbors.points.push(matrix[r-2][c]); //2 up
+                    neighbors.typeOfSpring.push("flexion");
+
+                }
+                if(r+2 < this.rows) {
+                    neighbors.points.push(matrix[r+2][c]); //2 down
+                    neighbors.typeOfSpring.push("flexion");
+                }
+                if(c-2 > 0) { 
+                    neighbors.points.push(matrix[r][c-2]); //2 left
+                    neighbors.typeOfSpring.push("flexion");
+                }
+                if(c+2 < this.cols) {
+                    neighbors.points.push(matrix[r][c+2]) //2 right
+                    neighbors.typeOfSpring.push("flexion");
+                }
 
                 matrix[r][c].addNeighbors(neighbors);
             }
