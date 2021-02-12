@@ -19,16 +19,49 @@ class Point {
         this.log = false;
 
         this.oldPosition = this.pos;
+        this.force = createVector();
+    }
+
+    calculateForce() {
+        const Fg = createVector(0,this.mass * 9.82);
+        const F = createVector(0.0, 0.0);
+        let Fint = this.calculateInternalForce();
+
+        let forceSum = p5.Vector.add(Fint,F);
+        forceSum.add(Fg);
+
+        this.force.set(forceSum);
+        console.log("netForce x", forceSum.x, " y ", forceSum.y);
+    }
+
+    calcRest() {
+        const Fg = createVector(0,this.mass * 9.82);
+        const F = createVector(0.0, 0.0);
+    }
+
+    calcSpringForce(neighbor) {
+        // console.log("neighbor pos in calc spring force", neighbor.pos)
+        let springForce = createVector();
+        let L = p5.Vector.sub(this.pos, neighbor.pos);
+        let length = L.mag();
+        let normalized = L.normalize();
+        let displacement = length - this.L0;
+
+        springForce.x = this.k * displacement*normalized.x;
+        springForce.y = this.k * displacement*normalized.y;
+
+        return springForce;        
     }
     
     calculateInternalForce() {
         let sum = createVector();
+        // console.log(this.neighbors)
         for(let i = 0; i < this.neighbors.length; i++) {
             //spring force calculations
             let springForce = createVector();
             //p1p2  => p2 - p1 
-            let L = p5.Vector.sub(this.pos,this.neighbors[i].pos);
-            let length = Math.sqrt(L.x*L.x + L.y*L.y);
+            let L = p5.Vector.sub(this.pos, this.neighbors[i].pos);
+            let length = L.mag();
 
             if(length <= 0.000001) { //potential bug, check for epsilon
                 springForce.mult(0); // => force = [0;0]
@@ -40,27 +73,26 @@ class Point {
 
                 springForce.x = this.k * displacement*normalized.x;
                 springForce.y = this.k * displacement*normalized.y;
-
-                // let absL = createVector(abs(L.x), abs(L.y), abs(L.z))
-                // let dist = p5.Vector.sub(absL,this.L0); // Måste göra p5.vector
-               
-                // springForce.x = this.k*dist.x*normalized.x;
-                // springForce.y = this.k*dist.y*normalized.y;
             }
             sum.add(springForce);
             this.log ? console.log("springForce: i", i, springForce) : 0;
-            //force.add(this.k * (L.sub(this.L0)) * L / L.mag());
+            // console.log("springForce: i", i, " x ", springForce.x, " y ", springForce.y);
 
             //damping forces calc
             let dampForce = p5.Vector.sub(this.vel, this.neighbors[i].vel);
             dampForce.mult(this.b);
-            this.log ? console.log("dampForce: i", i, dampForce) : 0;
-
+            // console.log("damping force i", i, " x ", dampForce.x, " y ", dampForce.y);
+            
             sum.add(dampForce);
         }
+        //let dampForce = this.vel.copy();
+        this.log ? console.log("dampForce: i", i, dampForce) : 0;
+
+
 
         sum.mult(-1);
         this.log ? console.log("summa : ", sum) : 0 ;
+        //console.log("total sum: ", sum);
         return sum;
     }
 
@@ -81,26 +113,6 @@ class Point {
 
     }
     update() {
-        this.oldPosition = this.pos;
-        this.render();
-        //this.acc.set(1/this.mass,1/this.mass); 
-        let Fint = this.calculateInternalForce();
-        const Fg = createVector(0,this.mass * 9.82);
-        
-        const F = createVector(0.0, 0.0);
-
-        //a1(:,t + 1) = 1 / m * (-Fint(:,1) + F + Fg);
-        let forceSum = p5.Vector.add(Fint,F);
-        this.log ? console.log("Fint + F", forceSum) : 0;
-        forceSum.add(Fg);
-        if(this.log){
-        console.log("Force gravity", Fg)
-        console.log("Fint + F + Fg", forceSum);
-        }
-        //console.log("forcex: x", forceSum.x);
-        //console.log("forcex: y", forceSum.y);
-        //console.log("force sum", forceSum);
-
 
         /* This will be calculated in the main
         this.acc.x = 1/this.mass * forceSum.x;

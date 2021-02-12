@@ -27,45 +27,23 @@ let p1, p2, p3, p4;
 
 function setup() {
 	createCanvas(1200, 900);
-	pstatic1 = new Point(209, 53, 5, color('black'));
-	pstatic2 = new Point(width/2 + 100, 100, 5, color('black'));
+	pstatic1 = new Point(239, 53, 10, color('black'));
+	pstatic2 = new Point(width/2 + 100, 100, 10, color('black'));
 
-	// pstatic1 = new Point(100, height/2-100, 10);
-	// pstatic2 = new Point(100, height/2, 10);
 
-	p1 = new Point(238, 89, 10, color('magenta'));
-	p2 = new Point(106,85, 10, color('green'));
-	//p3 = new Point(width/2 + 200, 300, 10, color('red'));
-	//p4 = new Point(width/2 + 200, 400, 10, color('blue'));
-
-	// p1 = new Point(300, height/2 -100);
-	// p2 = new Point(400, height/2);
-	// p3 = new Point(350, height/2 - 100);
-	// p4 = new Point(450, height/2);
-
+	p1 = new Point(109, 238, 20, color('magenta'));
+	p2 = new Point(105, 106, 20, color('green'));
 
 	p1.addNeighbors([pstatic1, p2]);
 	p2.addNeighbors([p1]);
-	//p3.addNeighbors([pstatic2, p1,p3, p4]);
-	//p4.addNeighbors([p2, p3, p1]);
-
-	console.log("pstatic:", pstatic1.pos);
-	console.log("p1",p1.pos);
-	console.log("width", width)
-	console.log("height",height)
 }
 
-// THE PROBLEMS: SKITEN FUNKAR EJ
-// THE PLAN: Jämför mot matlab på något bra sätt?
-// 
 
 function mousePressed() {
-	for(let i = 0; i < 1; i++) {
-	p1.update();
-	p2.update();
-	//p3.update();
-	//p4.update();
-	}
+	pilot();
+	facit();
+
+	
 }
 
 function draw() {
@@ -75,65 +53,75 @@ function draw() {
 
 	pstatic1.render();
 	pstatic2.render();
-	//p1.renderHelperArrows();
 	
-
-
-	pstatic1.drawLine(p1);
-	//pstatic2.drawLine(p3);
-	// p1.drawLine(p2);
-	// p3.drawLine(p1);
-	// p3.drawLine(p2);
-	// p4.drawLine(p2);
-	// p4.drawLine(p3);
-	// p4.drawLine(p1);
-
-	//p1.update();
-	//p2.update();
-
-	//p3.update();
-	//p4.update();
-
 	p1.render();
 	p2.render();
-	//p3.render();
-	//p4.render();
-	
-	//let Fint1 = p1.calculateInternalForce();
-	//let Fint2 = p2.calculateInternalForce();
-	
 
-	const Fg = createVector(0, p1.mass * 9.82);
-	const F = createVector(0.0, 0.0);
-	
-	let forceSum1 = p5.Vector.add(Fint1,F);
-	forceSum1.add(Fg);
-	
-	let forceSum2 = p5.Vector.add(Fint2,F);
-	forceSum2.add(Fg);
-	
-	p1.acc.x = 1/this.mass * forceSum1.x;
-	p1.acc.y = 1/this.mass * forceSum1.y;
-
-	p2.acc.x = 1/this.mass * forceSum2.x;
-	p2.acc.y = 1/this.mass * forceSum2.y;
-
-	let h = 0.28;
-	
-	p1.acc.mult(h);
-	p1.vel.add(p1.acc); 
-	
-	p1.vel.mult(h); 
-	p1.pos.add(p1.vel);
-	
-	p2.acc.mult(h);
-	p2.vel.add(p2.acc); //this.vel = this.vel + this.acc*h
-	
-	p2.vel.mult(h); //ÄKTA PRIMA VARA<3 EULER
-	p2.pos.add(p2.vel);
-	
+	facit();
+	pilot();
+	line(mass1PositionX, mass1PositionY, anchorX, anchorY);
+	ellipse(mass1PositionX, mass1PositionY, 20, 20);
+	// Draw mass 2
+	line(mass2PositionX, mass2PositionY, mass1PositionX, mass1PositionY);
+	ellipse(mass2PositionX, mass2PositionY, 20, 20);
+}
 
 
+function pilot(){
+	// console.log("pos from main",p1.pos)
+	// console.log("pos from main",p2.pos)
+	// console.log("springforce p1 -> p2 main", p1.calcSpringForce(p2))
+	p1.calculateForce();
+	p2.calculateForce();
+
+
+	p1.acc.x = p1.force.x / p1.mass;
+	p1.acc.y = p1.force.y / p1.mass;
+
+	p2.acc.x = p2.force.x / p2.mass;
+	p2.acc.y = p2.force.y / p2.mass;
+
+	// console.log("p1 acc x", p1.acc.x, " y ", p1.acc.y);
+	// console.log("p2 acc x", p2.acc.x, " y ", p2.acc.y);
+
+
+	// console.log("pre vel 1 x ", p1.vel.x, " y ", p1.vel.y);
+	// console.log("pre vel 2 x", p2.vel.x, " y ", p2.vel.y);
+
+	let p1AccCopy = p1.acc.copy();
+	p1AccCopy.mult(timeStep);
+	p1.vel.add(p1AccCopy);
+	//p1.acc.mult(timeStep);
+	//p1.vel.add(p1.acc); //this.vel = this.vel + this.acc*h
+	let p2AccCopy = p2.acc.copy();
+	p2AccCopy.mult(timeStep);
+	p2.vel.add(p2AccCopy);
+
+	// p2.acc.mult(timeStep);
+	// p2.vel.add(p2.acc); //this.vel = this.vel + this.acc*h
+
+	// console.log("pos vel 1 x ", p1.vel.x, " y ", p1.vel.y);
+	// console.log("pos vel 2 x", p2.vel.x, " y ", p2.vel.y);
+	
+	// console.log("pre pos 1 x ", p1.pos.x, " y ", p1.pos.y);
+	// console.log("pre pos 2", p2.pos.x, " y ", p2.pos.y); 
+
+	let p1VelCopy = p1.vel.copy();
+	p1VelCopy.mult(timeStep);
+	//p1.vel.mult(timeStep); //ÄKTA PRIMA VARA<3 EULER
+	p1.pos.add(p1VelCopy);
+
+	let p2VelCopy = p2.vel.copy();
+	p2VelCopy.mult(timeStep);
+	//p1.vel.mult(timeStep); //ÄKTA PRIMA VARA<3 EULER
+	p2.pos.add(p2VelCopy);
+
+	// console.log("pos pos 1 x ", p1.pos.x, " y ", p1.pos.y);
+	// console.log("pos pos 2", p2.pos.x, " y ", p2.pos.y); 
+
+}
+
+function facit() {
 // ----------------------------------------------------------------------------------
 
 // Mass 1 Spring Force
@@ -144,6 +132,10 @@ var mass1SpringForceX = -k*(mass1PositionX - anchorX);
 var mass2SpringForceY = -k*(mass2PositionY - mass1PositionY);
 var mass2SpringForceX = -k*(mass2PositionX - mass1PositionX);
 
+// console.log("spring force 1 x", mass1SpringForceX, " y ", mass1SpringForceY);
+// console.log("spring force 2 x", mass2SpringForceX, " y ", mass2SpringForceY);
+
+
 // Mass 1 daming
 var mass1DampingForceY = damping * mass1VelocityY;
 var mass1DampingForceX = damping * mass1VelocityX;
@@ -151,6 +143,10 @@ var mass1DampingForceX = damping * mass1VelocityX;
 // Mass 2 daming
 var mass2DampingForceY = damping * mass2VelocityY;
 var mass2DampingForceX = damping * mass2VelocityX;
+
+// console.log("damping force 1 x", mass1DampingForceX, " y ", mass1DampingForceY);
+// console.log("damping force 2 x", mass2DampingForceX, " y ", mass2DampingForceY);
+
 
 // Mass 1 net force
 var mass1ForceY = mass1SpringForceY + mass * gravity - mass1DampingForceY - mass2SpringForceY + mass2DampingForceY;
@@ -169,6 +165,18 @@ var mass1AccelerationX = mass1ForceX/mass;
 var mass2AccelerationY = mass2ForceY/mass;
 var mass2AccelerationX = mass2ForceX/mass;
 
+
+// console.log("netForceMass1 x: ", mass1ForceX, " y: ", mass1ForceY);
+// console.log("netForceMass2 x: ", mass2ForceX, " y: ", mass2ForceY);
+
+// console.log("Acceleration 1 x", mass1AccelerationX, " y ", mass1AccelerationY);
+// console.log("Acceleration 2 x", mass2AccelerationX, " y ", mass2AccelerationY);
+
+
+// console.log("Pre velocity 1 x", mass1VelocityX, " y ", mass1VelocityY);
+// console.log("Pre velocity 2 x", mass2VelocityX, " y ", mass2VelocityY);
+
+
 // Mass 1 velocity
 mass1VelocityY = mass1VelocityY + mass1AccelerationY * timeStep;
 mass1VelocityX = mass1VelocityX + mass1AccelerationX * timeStep;
@@ -177,6 +185,11 @@ mass1VelocityX = mass1VelocityX + mass1AccelerationX * timeStep;
 mass2VelocityY = mass2VelocityY + mass2AccelerationY * timeStep;
 mass2VelocityX = mass2VelocityX + mass2AccelerationX * timeStep;
 
+// console.log("Pos velocity 1 x", mass1VelocityX, " y ", mass1VelocityY);
+// console.log("Pos velocity 2 x", mass2VelocityX, " y ", mass2VelocityY);
+
+// console.log("Pre position 1 x", mass1PositionX, " y ", mass1PositionY);
+// console.log("Pre position 2 x", mass2PositionX, " y ", mass2PositionY);
 // Mass 1 position
 mass1PositionY = mass1PositionY + mass1VelocityY * timeStep;
 mass1PositionX = mass1PositionX + mass1VelocityX * timeStep;
@@ -185,13 +198,9 @@ mass1PositionX = mass1PositionX + mass1VelocityX * timeStep;
 mass2PositionY = mass2PositionY + mass2VelocityY * timeStep;
 mass2PositionX = mass2PositionX + mass2VelocityX * timeStep;
 
+// console.log("Pos position 1 x", mass1PositionX, " y ", mass1PositionY);
+// console.log("Pos position 2 x", mass2PositionX, " y ", mass2PositionY);
 
-line(mass1PositionX, mass1PositionY, anchorX, anchorY);
-ellipse(mass1PositionX, mass1PositionY, 20, 20);
-// Draw mass 2
-line(mass2PositionX, mass2PositionY, mass1PositionX, mass1PositionY);
-ellipse(mass2PositionX, mass2PositionY, 20, 20);
+
+
 }
-
-
-
