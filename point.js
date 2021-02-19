@@ -2,8 +2,8 @@ class Point {
     constructor(x,y,r = 10, color)  {
         this.mass = ParticleMass; //kg
         this.pos = createVector(x, y);
-        this.vel = createVector(0,0); // m/s^2 
-        this.acc = createVector(0,0); //m per s
+        this.vel = createVector(0,0); // m/s 
+        this.acc = createVector(0,0); // m/s^2
         this.radius = ParticleRadius;
         this.c = color;
 
@@ -23,8 +23,7 @@ class Point {
         //const F = createVector(10, -25);
         let Fint = this.calculateInternalForce();
 
-        let forceSum = p5.Vector.add(Fint,WIND);
-        forceSum.add(Fg);
+        let forceSum = p5.Vector.add(Fint,WIND).add(Fg);
         this.force.set(forceSum);
         }
     }
@@ -36,7 +35,6 @@ class Point {
             //spring force calculations
             let springForce = createVector();
             //p1p2  => p2 - p1
-            
             let L = p5.Vector.sub(this.pos, this.neighbors.points[i].pos);
             let length = L.mag();
 
@@ -55,7 +53,7 @@ class Point {
                 
                 let normalized = L.normalize();
                 //let displacement = length - this.L0;
-
+                //springForce.set(normalized.mult(displacement).mult(this.k));
                 springForce.x = this.k * displacement*normalized.x;
                 springForce.y = this.k * displacement*normalized.y;
             }
@@ -85,19 +83,16 @@ class Point {
     }
 
     calculateNextStep() {
-        this.acc.x = this.force.x / this.mass;
-        this.acc.y = this.force.y / this.mass;
+        this.acc.set(this.force.div(this.mass));
+        //this.acc.x = this.force.x / this.mass;
+        //this.acc.y = this.force.y / this.mass;
 
         this.eulerIntegration(this.vel, this.acc, TIMESTEP);
         this.eulerIntegration(this.pos, this.vel, TIMESTEP);
     }
 
     drawLine(p2, color) {
-        //if()
-        color = !color ? 'black' : color // if(!color) color ="red" else color = color;
-        
-        //console.log(color)
-        //c = color(color)
+        color = color ? color : 'black' // if(!color) color ="red" else color = color;
         stroke(color)
         line(this.pos.x, this.pos.y, p2.pos.x, p2.pos.y);
     }
