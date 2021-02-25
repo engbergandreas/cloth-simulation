@@ -11,7 +11,7 @@ let cloth;
  const RENDERFLEX = false;
  const RENDERPOINTS = true;
  const RENDERSPRINGS = false;
- const RENDERTEXTURE = false;
+ const RENDERTEXTURE = true;
 
  //wind
  let WIND;
@@ -65,7 +65,7 @@ let uiText;
 
 function setup() {
 	createCanvas(windowWidth,windowHeight, WEBGL);
-	flagimg = loadImage('flag2.png');
+	flagimg = loadImage('mt_flagga.png');
 	DIR = createVector();
 	
 	WIND = DIR; //Start at specified DIR
@@ -100,7 +100,7 @@ function setup() {
 	springSlider = createSlider(0.1, 9.9, 5, 0.05); 
 	springSlider.size(elementWidth, elementHeight);
 	springSlider.position(965, 350);
-	dampingSlider = createSlider(0.1, 1.5, 0.5, 0.05);
+	dampingSlider = createSlider(0, 1, 0.2, 0.01);
 	dampingSlider.position(965, 400);
 	dampingSlider.size(elementWidth, elementHeight);
 

@@ -35,7 +35,7 @@ class Cloth {
     }
 
     updateCloth() {
-        this.calculateForce();
+        //this.calculateForce();
         this.stepForward();
         
         //this.verletIntegration();
