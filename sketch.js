@@ -11,7 +11,7 @@ let cloth;
  const RENDERFLEX = false;
  const RENDERPOINTS = true;
  const RENDERSPRINGS = false;
- const RENDERTEXTURE = false;
+ const RENDERTEXTURE = true;
 
  //wind
  let WIND;
