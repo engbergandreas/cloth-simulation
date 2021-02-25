@@ -1,7 +1,8 @@
 class Point {
-    constructor(x,y,r = 10, color)  {
+    constructor(x,y,color)  {
         this.mass = ParticleMass; //kg
         this.pos = createVector(x, y);
+        this.oldPos = this.pos.copy();
         this.vel = createVector(0,0); // m/s 
         this.acc = createVector(0,0); // m/s^2
         this.radius = ParticleRadius;
@@ -13,10 +14,10 @@ class Point {
         //bindings between
         this.k = SpringConstant;
         this.b = DampingConstant; 
-        this.L0 = SpringAtRest; 
+        this.restLength = SpringAtRest; 
         this.neighbors = {points: [], typeOfSpring: []}; 
     }
-
+    
     calculateForce() {
         if(!this.static) {
         const Fg = createVector(0,this.mass * 9.82);
@@ -36,23 +37,27 @@ class Point {
             let springForce = createVector();
             //p1p2  => p2 - p1
             let L = p5.Vector.sub(this.pos, this.neighbors.points[i].pos);
-            let length = L.mag();
+            let currentLength = L.mag();
 
-            if(length <= 0.000001) { //check for epsilon, avoid dividing by 0
+            if(currentLength <= 0.000001) { //check for epsilon, avoid dividing by 0
                 springForce.mult(0); // => force = [0;0]
             }
             else {
                 if(this.neighbors.typeOfSpring[i] === "structural") {
-                    displacement = length - this.L0;
+                    displacement = currentLength - this.restLength;
                     this.k = SpringConstant;
                 }
+                else if (this.neighbors.typeOfSpring[i] === "shear") {
+                    displacement = currentLength - 1.414 * this.restLength;
+                    this.k = SpringConstant / 2;
+                }
                 else if(this.neighbors.typeOfSpring[i] === "flexion") {
-                    displacement = length - 2*this.L0;
-                    this.k /= 4;
+                    displacement = currentLength -  2 * this.restLength;
+                    this.k = SpringConstant / 6;
                 }
                 
                 let normalized = L.normalize();
-                //let displacement = length - this.L0;
+                //let displacement = le ngth - this.L0;
                 //springForce.set(normalized.mult(displacement).mult(this.k));
                 springForce.x = this.k * displacement*normalized.x;
                 springForce.y = this.k * displacement*normalized.y;
@@ -76,30 +81,58 @@ class Point {
         }
     }
 
+    updateValues(){
+        this.mass = ParticleMass;
+        this.k = SpringConstant;
+        this.b = DampingConstant;
+    }
+
     eulerIntegration(x, xDerivate, h) {
         let derivateCopy = xDerivate.copy();
         derivateCopy.mult(h);
         x.add(derivateCopy);
     }
 
+    // Run twice as long as corresponding euler integration
+    // NOT WORKING
+    verletIntegration(dt) {
+        let x_dt = 2 * this.pos.x - this.oldPos.x + this.acc.x*(dt*dt); //Baseras på (6)
+        let y_dt = 2 * this.pos.y - this.oldPos.y + this.acc.y*(dt*dt); //Baseras på (6)
+        
+        this.vel.x = (x_dt - this.oldPos.x)/(2*dt); // Baseras på (7)
+        this.vel.y = (y_dt - this.oldPos.y)/(2*dt);
+        //console.log(this.vel);
+        this.pos.x = x_dt; //steg 8
+        this.pos.y = y_dt; //steg 8
+    }
+
+
+
     calculateNextStep() {
         this.acc.set(this.force.div(this.mass));
-        //this.acc.x = this.force.x / this.mass;
-        //this.acc.y = this.force.y / this.mass;
-
         this.eulerIntegration(this.vel, this.acc, TIMESTEP);
         this.eulerIntegration(this.pos, this.vel, TIMESTEP);
+
+        this.oldPos = this.pos.copy(); //part for verlet integration
+
+        //this.verletIntegration(TIMESTEP);
     }
 
     drawLine(p2, color) {
-        color = color ? color : 'black' // if(!color) color ="red" else color = color;
+        color = color ? color : 'white' // if(!color) color ="red" else color = color;
         stroke(color)
+        fill(255)
+        strokeWeight(1)
         line(this.pos.x, this.pos.y, p2.pos.x, p2.pos.y);
     }
     
     render() {
+        push();
+        translate(this.pos.x, this.pos.y);
+        noStroke();
         fill(this.c);
-        ellipse(this.pos.x, this.pos.y, this.radius);
+        ellipse(0,0,this.radius);
+        pop();
     }
 
     renderHelperArrows() {

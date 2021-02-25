@@ -4,10 +4,14 @@ eulerintegration
 Move masses
 Make flag make sense X
 static masses
-fixa granar
+fixa grannar
 
 
 -->
 
 skapa grid av masses
 koppla samman dessa
+
+-->
+
+RK4

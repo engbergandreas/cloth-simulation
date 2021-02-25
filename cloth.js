@@ -12,35 +12,43 @@ class Cloth {
         for(let r = 0; r < this.rows; r++) {
             matrix[r] = []; //create nested array
             for(let c = 0; c < this.cols; c++) {
-                matrix[r][c] = new Point(c * this.spacing + this.x, r * this.spacing + this.y, 5, color('black'));
+                matrix[r][c] = new Point(c * this.spacing + this.x, r * this.spacing + this.y, color('black'));
             }   
         }
-        this.connect8Neighbors();
-        this.connectFlexionNeighbors();
+        this.connectNeighbors();
         this.setStaticPoints();
     }
 
     setStaticPoints(){
         matrix[0][0].static = true; //top left 
-        matrix[0][this.cols-1].static = true; //top right
-        //matrix[this.rows-1][0].static = true; //bottom left
+        //matrix[0][this.cols-1].static = true; //top right
+        matrix[this.rows-1][0].static = true; //bottom left
         //matrix[this.rows-1][this.cols-1].static = true; //bottom right
+        //lock top row
+        // for(let c = 0; c < this.cols; c++) {
+        //     matrix[0][c].static = true;
+        // }
 
-        for(let c = 0; c < this.cols; c++) {
-            matrix[0][c].static = true;
+        for(let r = 0; r < this.rows; r++) {
+            matrix[r][0].static = true;
         }
     }
 
     updateCloth() {
         this.calculateForce();
         this.stepForward();
+        
+        //this.verletIntegration();
+        if(RENDERTEXTURE) 
+            this.renderTexture();
         this.renderCloth();
     }
-
+    
     calculateForce() {
         //Calculate all forces for the points in cloth
         for(let r = 0; r < this.rows; r++) {
             for(let c = 0; c < this.cols; c++) {
+                matrix[r][c].updateValues();
                 matrix[r][c].calculateForce();
             }
         }
@@ -59,22 +67,22 @@ class Cloth {
         //access index[row][col]
         for(let r = 0; r < this.rows; r++) {
             for(let c = 0; c < this.cols; c++) {
-                if(RENDERPOINTS)
-                    matrix[r][c].render();
-                
-                //draw spring lines between particles
-                if(r != 0 && c != this.cols -1) {
-                    matrix[r][c].drawLine(matrix[r-1][c+1]); //diagonal upwards right
-                }
-                if(r != this.rows - 1 && c != this.cols - 1) {
-                    matrix[r][c].drawLine(matrix[r+1][c+1]); //diagonal downwards right
-                }
-                if(r != this.rows-1) {
-                    matrix[r][c].drawLine(matrix[r+1][c]); //downwards
-                }
-                if(c != this.cols -1) {
-                    matrix[r][c].drawLine(matrix[r][c+1]); //right
-                }
+
+                if(RENDERSPRINGS) {
+                    //draw spring lines between particles
+                    if(r != 0 && c != this.cols -1) {
+                        matrix[r][c].drawLine(matrix[r-1][c+1]); //diagonal upwards right
+                    }
+                    if(r != this.rows - 1 && c != this.cols - 1) {
+                        matrix[r][c].drawLine(matrix[r+1][c+1]); //diagonal downwards right
+                    }
+                    if(r != this.rows-1) {
+                        matrix[r][c].drawLine(matrix[r+1][c]); //downwards
+                    }
+                    if(c != this.cols -1) {
+                        matrix[r][c].drawLine(matrix[r][c+1]); //right
+                    }
+                 }
                 
                 if(RENDERFLEX) {
                     if(r+2 < this.rows) {
@@ -84,40 +92,91 @@ class Cloth {
                         matrix[r][c].drawLine(matrix[r][c+2], "red"); //right
                     }
                 }
+
+                if(RENDERPOINTS)
+                    matrix[r][c].render();
             }
         }        
     }
 
-    connect8Neighbors() {
+    renderTexture() {
+        push()
+        for(let r = 0; r < this.rows-1; r++) {
+            beginShape(TRIANGLE_STRIP);
+            texture(flagimg);
+            for(let c = 0; c < this.cols; c++) {
+                let x1 = matrix[r][c].pos.x;
+                let y1 = matrix[r][c].pos.y;
+                let z1 = 0;
+                let u = map(r, 0, this.rows-1, 0,1);
+                let v = map(c, 0, this.cols-1, 0,1);
+                vertex(x1,y1,z1,v,u);
+                
+                let x2 = matrix[r+1][c].pos.x;
+                let y2 = matrix[r+1][c].pos.y;
+                let z2 = 0;
+                let u2 = map(r+1,0,this.rows-1, 0,1);
+                vertex(x2,y2,z2,v,u2);
+            }
+            endShape();
+        }
+        pop();
+        // Add texture
+    }
+
+    connectNeighbors() {
+        this.connectStructuralNeighbors();
+        this.connectShearNeighbors();
+        this.connectFlexionNeighbors();
+    }
+
+    connectStructuralNeighbors() {
         for(let r = 0; r < this.rows; r++) {
             for(let c = 0; c < this.cols; c++) {
                 let neighbors = {points: [], typeOfSpring : []};
-                //console.log("row", r, "col", c);
-                for(let i = r - 1; i <= r + 1; i++) {
-                    for(let j = c - 1; j <= c + 1; j++) {
-                        //console.log("i", i, "j", j);					
-                        //Check edge
-                        if(i < 0 || i > this.rows - 1) {
-                            //console.log("continues rows");
-                        }
-                        else if(j < 0 || j > this.cols - 1)
-                        {
-                            //console.log("continues cols");
-                        }
-                        //Check for self
-                        else if (i == r && j == c) {
-                            //console.log("continues self");
-                        }
-                        //Else add neighbor
-                        else {
-                            //console.log("pushing"); 
-                            neighbors.points.push(matrix[i][j]);
-                            neighbors.typeOfSpring.push("structural");
-                        }
-                    }
+                if(r-1 >= 0) {
+                    neighbors.points.push(matrix[r-1][c]); //1 up
+                    neighbors.typeOfSpring.push("structural");
+                }
+                if(r+1 < this.rows) {
+                    neighbors.points.push(matrix[r+1][c]); //1 down
+                    neighbors.typeOfSpring.push("structural");
+                }
+                if(c-1 >= 0) { 
+                    neighbors.points.push(matrix[r][c-1]); //1 left
+                    neighbors.typeOfSpring.push("structural");
+                }
+                if(c+1 < this.cols) {
+                    neighbors.points.push(matrix[r][c+1]) //1 right
+                    neighbors.typeOfSpring.push("structural");
                 }
                 matrix[r][c].addNeighbors(neighbors);
+                nrSprings += neighbors.points.length;
+            }
+        }
+    }
 
+    connectShearNeighbors() {
+        for(let r = 0; r < this.rows; r++) {
+            for(let c = 0; c < this.cols; c++) {
+                let neighbors = {points: [], typeOfSpring : []};
+                if(r-1 >= 0 && c-1 >= 0) {
+                    neighbors.points.push(matrix[r-1][c-1]); //1 up left diagonal
+                    neighbors.typeOfSpring.push("shear");
+                }
+                if(r-1 >= 0 && c+1 < this.cols) {
+                    neighbors.points.push(matrix[r-1][c+1]); //1 up right diagonal
+                    neighbors.typeOfSpring.push("shear");
+                }
+                if(r+1 < this.rows && c-1 >= 0) { 
+                    neighbors.points.push(matrix[r+1][c-1]); //1 down left diagonal
+                    neighbors.typeOfSpring.push("shear");
+                }
+                if(r+1 < this.rows && c+1 < this.cols) {
+                    neighbors.points.push(matrix[r+1][c+1]) //1 down right diagonal
+                    neighbors.typeOfSpring.push("shear");
+                }
+                matrix[r][c].addNeighbors(neighbors);
                 nrSprings += neighbors.points.length;
             }
         }
@@ -129,7 +188,7 @@ class Cloth {
             for(let c = 0; c < this.cols; c++) {
                 let neighbors = {points: [], typeOfSpring : []};
 
-                if(r-2 > 0) { 
+                if(r-2 >= 0) { 
                     neighbors.points.push(matrix[r-2][c]); //2 up
                     neighbors.typeOfSpring.push("flexion");
                 }
@@ -137,7 +196,7 @@ class Cloth {
                     neighbors.points.push(matrix[r+2][c]); //2 down
                     neighbors.typeOfSpring.push("flexion");
                 }
-                if(c-2 > 0) { 
+                if(c-2 >= 0) { 
                     neighbors.points.push(matrix[r][c-2]); //2 left
                     neighbors.typeOfSpring.push("flexion");
                 }
