@@ -71,16 +71,15 @@ class Point {
             sum.add(springForce);
 
             //damping forces calc
-            let dampForce = p5.Vector.sub(this.vel.copy().add(velocity), this.neighbors.points[i].vel.copy());
-            dampForce.mult(this.b);
-            sum.add(dampForce);
-            //nu har vi damping * (this.velocity - neighbor.velocity)
-            //damping * this.velocity + velocity
+            // let dampForce = p5.Vector.sub(this.vel.copy().add(velocity), this.neighbors.points[i].vel.copy());
+            // dampForce.mult(this.b);
+            // sum.add(dampForce);
         }
-
-        // let dampForce = this.vel.copy().add(velocity);
-        // dampForce.mult(this.b);
-        // sum.add(dampForce);
+        
+        //damping forces calc
+        let dampForce = this.vel.copy().add(velocity);
+        dampForce.mult(this.b);
+        sum.add(dampForce);
 
         sum.mult(-1);
         return sum;
@@ -97,12 +96,6 @@ class Point {
         this.mass = ParticleMass;
         this.k = SpringConstant;
         this.b = DampingConstant;
-    }
-
-    eulerIntegration(x, xDerivate, h) {
-        let derivateCopy = xDerivate.copy();
-        derivateCopy.mult(h);
-        x.add(derivateCopy);
     }
 
     rk4Integration(dt) {
@@ -134,49 +127,6 @@ class Point {
         
         this.vel.set(newVelocity);
         this.pos.set(newPosition);
-    }
-
-    // Run twice as long as corresponding euler integration
-    // NOT WORKING
-    verletIntegration(dt) {
-        let x_dt = 2 * this.pos.x - this.oldPos.x + this.acc.x*(dt*dt); //Baseras på (6)
-        let y_dt = 2 * this.pos.y - this.oldPos.y + this.acc.y*(dt*dt); //Baseras på (6)
-        
-        this.vel.x = (x_dt - this.oldPos.x)/(2*dt); // Baseras på (7)
-        this.vel.y = (y_dt - this.oldPos.y)/(2*dt);
-        //console.log(this.vel);
-        
-        //this.pos.x = x_dt; //steg 8
-        //this.pos.y = y_dt; //steg 8
-
-        this.pos.x = x_dt +  this.vel.x * dt;
-        this.pos.y = y_dt + this.vel.y * dt;
-    }
-    
-    //Test with different verlet
-    verInt(dt) {
-        let newPos = this.pos.copy().add(this.vel.copy().mult(dt)).add(this.acc.copy().mult(0.5*dt*dt));
-        //this.calculateForce();
-        let newAcc = this.force.div(this.mass);   
-        let newVel = this.vel.copy().add(this.acc.copy().mult(0.5*dt)).add(newAcc.copy().mult(dt*0.5));
-        this.pos.set(newPos);
-        this.vel.set(newVel);
-        this.acc.set(newAcc);     
-    }
-
-
-
-    calculateNextStep() {
-        //this.calculateForce(createVector());
-        //this.acc.set(this.force.div(this.mass));
-
-        // this.eulerIntegration(this.vel, this.acc, TIMESTEP);
-        // this.eulerIntegration(this.pos, this.vel, TIMESTEP);
-
-        this.oldPos = this.pos.copy(); //part for verlet integration
-        //this.rk4Integration(TIMESTEP);
-        //this.verletIntegration(TIMESTEP);
-        this.verInt(TIMESTEP);
     }
 
     drawLine(p2, color) {
