@@ -1,18 +1,20 @@
 class Cloth {
-    constructor(_rows, _cols, _x, _y, _spacing) {
+    constructor(_rows, _cols, _x, _y, _z, _spacing) {
         this.matrix = [];
         this.rows = _rows;
         this.cols = _cols;
         this.spacing = _spacing;
         this.x = _x;
         this.y = _y;
+        this.z = _z;
         
         //setup cloth grid, x,y starting point of grid, distance spacing between points
         //access index[row][col]
         for(let r = 0; r < this.rows; r++) {
             matrix[r] = []; //create nested array
             for(let c = 0; c < this.cols; c++) {
-                matrix[r][c] = new Point(c * this.spacing + this.x, r * this.spacing + this.y, color('black'));
+                //2 dimensional plane with ability to move in z direction, => z = 0
+                matrix[r][c] = new Point(c * this.spacing + this.x, r * this.spacing + this.y, 0, color('black'));
             }   
         }
         this.connectNeighbors();
@@ -38,10 +40,11 @@ class Cloth {
         this.calculateForce();
         this.stepForward();
         
-        //this.verletIntegration();
         if(RENDERTEXTURE) 
             this.renderTexture();
-        this.renderCloth();
+        
+        if(RENDERSPRINGS || RENDERFLEXSPRINGS || RENDERPOINTS)
+            this.renderCloth();
     }
     
     calculateForce() {
@@ -51,7 +54,6 @@ class Cloth {
                 matrix[r][c].updateValues();
                 // matrix[r][c].calculateForce();
                 matrix[r][c].rk4Integration(TIMESTEP);
-
             }
         }
     }
@@ -87,7 +89,8 @@ class Cloth {
                     }
                  }
                 
-                if(RENDERFLEX) {
+                //renders flexion springs
+                if(RENDERFLEXSPRINGS) {
                     if(r+2 < this.rows) {
                         matrix[r][c].drawLine(matrix[r+2][c], "red"); //right
                     }
@@ -95,7 +98,7 @@ class Cloth {
                         matrix[r][c].drawLine(matrix[r][c+2], "red"); //right
                     }
                 }
-
+                //render points 
                 if(RENDERPOINTS)
                     matrix[r][c].render();
             }
@@ -110,21 +113,21 @@ class Cloth {
             for(let c = 0; c < this.cols; c++) {
                 let x1 = matrix[r][c].pos.x;
                 let y1 = matrix[r][c].pos.y;
-                let z1 = 0;
+                let z1 = matrix[r][c].pos.z;
                 let u = map(r, 0, this.rows-1, 0,1);
                 let v = map(c, 0, this.cols-1, 0,1);
+                //let w = map(c, 0, this.cols-1, 0,1);
                 vertex(x1,y1,z1,v,u);
                 
                 let x2 = matrix[r+1][c].pos.x;
                 let y2 = matrix[r+1][c].pos.y;
-                let z2 = 0;
+                let z2 = matrix[r+1][c].pos.z;
                 let u2 = map(r+1,0,this.rows-1, 0,1);
                 vertex(x2,y2,z2,v,u2);
             }
             endShape();
         }
         pop();
-        // Add texture
     }
 
     connectNeighbors() {
@@ -184,7 +187,6 @@ class Cloth {
             }
         }
     }
-
 
     connectFlexionNeighbors(){
         for(let r = 0; r < this.rows; r++) {

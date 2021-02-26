@@ -1,7 +1,7 @@
 class Point {
-    constructor(x,y,color)  {
+    constructor(x,y,z,color)  {
         this.mass = ParticleMass; //kg
-        this.pos = createVector(x, y);
+        this.pos = createVector(x, y, z);
         this.oldPos = this.pos.copy();
         this.vel = createVector(0,0); // m/s 
         this.acc = createVector(0,0); // m/s^2
@@ -26,8 +26,7 @@ class Point {
     
     calculateForce(velocity) {
         if(!this.static) {
-        const Fg = createVector(0,this.mass * 9.82);
-        //const F = createVector(10, -25);
+        const Fg = createVector(0,this.mass * 9.82,0);
         let Fint = this.calculateInternalForce(velocity);
 
         let forceSum = p5.Vector.add(Fint,WIND).add(Fg);
@@ -45,7 +44,7 @@ class Point {
             let L = p5.Vector.sub(this.pos, this.neighbors.points[i].pos);
             let currentLength = L.mag();
 
-            if(currentLength <= 0.000001) { //check for epsilon, avoid dividing by 0
+            if(currentLength <= 0.000001) { //check for small value, avoid dividing by 0
                 springForce.mult(0); // => force = [0;0]
             }
             else {
@@ -63,10 +62,9 @@ class Point {
                 }
                 
                 let normalized = L.normalize();
-                //let displacement = le ngth - this.L0;
-                //springForce.set(normalized.mult(displacement).mult(this.k));
                 springForce.x = this.k * displacement*normalized.x;
                 springForce.y = this.k * displacement*normalized.y;
+                springForce.z = this.k * displacement*normalized.z; // !!!!
             }
             sum.add(springForce);
 
@@ -75,7 +73,7 @@ class Point {
             // dampForce.mult(this.b);
             // sum.add(dampForce);
         }
-        
+
         //damping forces calc
         let dampForce = this.vel.copy().add(velocity);
         dampForce.mult(this.b);
@@ -114,15 +112,10 @@ class Point {
         this.calculateForce(this.k3.copy());
         this.acc.set(this.force.div(this.mass)); //a = F/m
         this.k4.set(this.acc.mult(dt));
-
-
-        //console.log(this.k1, this.k2, this.k3, this.k4);
     }
 
     rk4NextStep(dt){
         let newVelocity = this.vel.copy().add(this.k1.div(6)).add(this.k2.div(3)).add(this.k3.div(3)).add(this.k4.div(6));
-        // Vnew =  V + (k1 + 2k2 + 2k3 + k4 ) / 6
-        
         let newPosition = this.pos.copy().add(newVelocity.copy().mult(dt));
         
         this.vel.set(newVelocity);
@@ -130,16 +123,18 @@ class Point {
     }
 
     drawLine(p2, color) {
-        color = color ? color : 'white' // if(!color) color ="red" else color = color;
-        stroke(color)
-        fill(255)
-        strokeWeight(1)
-        line(this.pos.x, this.pos.y, p2.pos.x, p2.pos.y);
+        push();
+        color = color ? color : 'red'; //if(!color) color ="red" else color = color;
+        stroke(color);
+        fill(255);
+        strokeWeight(1);
+        line(this.pos.x, this.pos.y, this.pos.z, p2.pos.x, p2.pos.y, p2.pos.z);
+        pop();
     }
     
     render() {
         push();
-        translate(this.pos.x, this.pos.y);
+        translate(this.pos.x, this.pos.y, this.pos.z);
         noStroke();
         fill(this.c);
         ellipse(0,0,this.radius);
