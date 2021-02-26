@@ -15,10 +15,11 @@ class GuiContainer{
 			this.x = px + this.offsetX;
 			this.y = py + this.offsetY;
 
+			timestepSlider.position(this.x + 65, this.y + 50);
             massSlider.position(this.x + 65,this.y + 100);
             springSlider.position(this.x + 65,this.y + 150);
             dampingSlider.position(this.x + 65,this.y + 200);
-
+			
 	        resetButton.position(this.x + 65 ,this.y + 300 - marginY);
 		}
 
@@ -26,6 +27,7 @@ class GuiContainer{
 		fill(0);
 		rect(this.x, this.y, this.w, this.h);
 
+		uiText.draw("Timestep: " + TIMESTEP, this.x + 100, this.y + 43);
         uiText.draw("Mass: " + ParticleMass, this.x + 100, this.y + 93);
         uiText.draw("Spring: " + SpringConstant, this.x + 100, this.y + 143);
         uiText.draw("Damping: " + DampingConstant, this.x + 100, this.y + 193);
