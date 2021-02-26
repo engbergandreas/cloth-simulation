@@ -35,7 +35,7 @@ class Cloth {
     }
 
     updateCloth() {
-        //this.calculateForce();
+        this.calculateForce();
         this.stepForward();
         
         //this.verletIntegration();
@@ -49,7 +49,9 @@ class Cloth {
         for(let r = 0; r < this.rows; r++) {
             for(let c = 0; c < this.cols; c++) {
                 matrix[r][c].updateValues();
-                matrix[r][c].calculateForce();
+                // matrix[r][c].calculateForce();
+                matrix[r][c].rk4Integration(TIMESTEP);
+
             }
         }
     }
@@ -58,7 +60,8 @@ class Cloth {
         //Calculate the next step for all points in cloth
         for(let r = 0; r < this.rows; r++) {
             for(let c = 0; c < this.cols; c++) {
-                matrix[r][c].calculateNextStep();
+                // matrix[r][c].calculateNextStep();
+                matrix[r][c].rk4NextStep(TIMESTEP);
             }
         }
     }

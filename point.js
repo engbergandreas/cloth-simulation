@@ -11,6 +11,12 @@ class Point {
         this.static = false;
         this.force = createVector();
 
+        //Rk4
+        this.k1 = createVector();
+        this.k2 = createVector();
+        this.k3 = createVector();
+        this.k4 = createVector();
+
         //bindings between
         this.k = SpringConstant;
         this.b = DampingConstant; 
@@ -65,15 +71,16 @@ class Point {
             sum.add(springForce);
 
             //damping forces calc
-            // let dampForce = p5.Vector.sub(this.vel, this.neighbors.points[i].vel);
-            // dampForce.mult(this.b);
-            // sum.add(dampForce);
+            let dampForce = p5.Vector.sub(this.vel.copy().add(velocity), this.neighbors.points[i].vel.copy());
+            dampForce.mult(this.b);
+            sum.add(dampForce);
             //nu har vi damping * (this.velocity - neighbor.velocity)
             //damping * this.velocity + velocity
         }
-        let dampForce = this.vel.copy().add(velocity);
-        dampForce.mult(this.b);
-        sum.add(dampForce);
+
+        // let dampForce = this.vel.copy().add(velocity);
+        // dampForce.mult(this.b);
+        // sum.add(dampForce);
 
         sum.mult(-1);
         return sum;
@@ -83,7 +90,6 @@ class Point {
         for(let i = 0; i < obj.points.length; i++) {
             this.neighbors.points.push(obj.points[i]);
             this.neighbors.typeOfSpring.push(obj.typeOfSpring[i]);
-
         }
     }
 
@@ -101,24 +107,28 @@ class Point {
 
     rk4Integration(dt) {
         this.calculateForce(createVector());
-        this.acc.set(this.force.div(this.mass)); //a = F/M
-        let k1 =  this.acc.mult(dt);
+        this.acc.set(this.force.div(this.mass)); //a = F/m
+        this.k1.set(this.acc.mult(dt)); //k = dt*a
+
+        this.calculateForce(this.k1.copy().mult(0.5));
+        this.acc.set(this.force.div(this.mass)); //a = F/m
+        this.k2.set(this.acc.mult(dt));
+
+        this.calculateForce(this.k2.copy().mult(0.5));
+        this.acc.set(this.force.div(this.mass)); //a = F/m
+        this.k3.set(this.acc.mult(dt));
         
-        this.calculateForce(k1.copy().mult(0.5));
-        this.acc.set(this.force.div(this.mass)); //a = F/M
-        let k2 = this.acc.mult(dt);
-
-        this.calculateForce(k2.copy().mult(0.5));
-        this.acc.set(this.force.div(this.mass)); //a = F/M
-        let k3 = this.acc.mult(dt);
-        
-        this.calculateForce(k3.copy());
-        this.acc.set(this.force.div(this.mass)); //a = F/M
-        let k4 = this.acc.mult(dt);
+        this.calculateForce(this.k3.copy());
+        this.acc.set(this.force.div(this.mass)); //a = F/m
+        this.k4.set(this.acc.mult(dt));
 
 
-        let newVelocity = this.vel.copy().add(k1.div(6)).add(k2.div(3)).add(k3.div(3)).add(k4.div(6));
-        // (k1 + 2k2 + 2k3 + k4 ) / 6
+        //console.log(this.k1, this.k2, this.k3, this.k4);
+    }
+
+    rk4NextStep(dt){
+        let newVelocity = this.vel.copy().add(this.k1.div(6)).add(this.k2.div(3)).add(this.k3.div(3)).add(this.k4.div(6));
+        // Vnew =  V + (k1 + 2k2 + 2k3 + k4 ) / 6
         
         let newPosition = this.pos.copy().add(newVelocity.copy().mult(dt));
         
@@ -132,24 +142,41 @@ class Point {
         let x_dt = 2 * this.pos.x - this.oldPos.x + this.acc.x*(dt*dt); //Baseras på (6)
         let y_dt = 2 * this.pos.y - this.oldPos.y + this.acc.y*(dt*dt); //Baseras på (6)
         
-        //this.vel.x = (x_dt - this.oldPos.x)/(2*dt); // Baseras på (7)
-        //this.vel.y = (y_dt - this.oldPos.y)/(2*dt);
+        this.vel.x = (x_dt - this.oldPos.x)/(2*dt); // Baseras på (7)
+        this.vel.y = (y_dt - this.oldPos.y)/(2*dt);
         //console.log(this.vel);
         
-        this.pos.x = x_dt; //steg 8
-        this.pos.y = y_dt; //steg 8
+        //this.pos.x = x_dt; //steg 8
+        //this.pos.y = y_dt; //steg 8
+
+        this.pos.x = x_dt +  this.vel.x * dt;
+        this.pos.y = y_dt + this.vel.y * dt;
+    }
+    
+    //Test with different verlet
+    verInt(dt) {
+        let newPos = this.pos.copy().add(this.vel.copy().mult(dt)).add(this.acc.copy().mult(0.5*dt*dt));
+        //this.calculateForce();
+        let newAcc = this.force.div(this.mass);   
+        let newVel = this.vel.copy().add(this.acc.copy().mult(0.5*dt)).add(newAcc.copy().mult(dt*0.5));
+        this.pos.set(newPos);
+        this.vel.set(newVel);
+        this.acc.set(newAcc);     
     }
 
 
 
     calculateNextStep() {
-        // this.acc.set(this.force.div(this.mass));
+        //this.calculateForce(createVector());
+        //this.acc.set(this.force.div(this.mass));
+
         // this.eulerIntegration(this.vel, this.acc, TIMESTEP);
         // this.eulerIntegration(this.pos, this.vel, TIMESTEP);
 
-        // this.oldPos = this.pos.copy(); //part for verlet integration
-        this.rk4Integration(TIMESTEP);
+        this.oldPos = this.pos.copy(); //part for verlet integration
+        //this.rk4Integration(TIMESTEP);
         //this.verletIntegration(TIMESTEP);
+        this.verInt(TIMESTEP);
     }
 
     drawLine(p2, color) {

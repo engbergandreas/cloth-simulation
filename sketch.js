@@ -12,6 +12,7 @@ let cloth;
  const RENDERPOINTS = true;
  const RENDERSPRINGS = false;
  const RENDERTEXTURE = true;
+ let STATIC_WIND = true;
 
  //wind
  let WIND;
@@ -37,7 +38,8 @@ const TIMESTEP = 0.1; //JAMES BOND <3
  let springSlider;
  let dampingSlider;
  let resetButton;
- let gui;
+ let windButton;
+ //let gui;
 
  let guiContainer;
  let containerWidth;
@@ -94,13 +96,18 @@ function setup() {
 	resetButton.position(965 , 500 - marginY);
 	resetButton.mousePressed(resetButtonPressed);
 
+	windButton = createButton("Wind type");
+	windButton.mousePressed(windButtonPressed);
+	windButton.size(elementWidth, elementHeight);
+	windButton.position(965, 600);
+	
 	massSlider = createSlider(0.1, 1.5, 0.5, 0.05); 
 	massSlider.size(elementWidth, elementHeight);
 	massSlider.position(965, 300);
 	springSlider = createSlider(0.1, 9.9, 5, 0.05); 
 	springSlider.size(elementWidth, elementHeight);
 	springSlider.position(965, 350);
-	dampingSlider = createSlider(0, 1, 0.2, 0.01);
+	dampingSlider = createSlider(0, 1.5, 0.2, 0.01);
 	dampingSlider.position(965, 400);
 	dampingSlider.size(elementWidth, elementHeight);
 
@@ -138,7 +145,8 @@ function draw() {
 	DampingConstant = dampingSlider.value();
 
 	guiContainer.show(mouseX, mouseY);
-	WIND = wind(); // Fluxuation of wind
+
+	WIND = STATIC_WIND ? static_wind() : wind(); // Fluxuation of wind
 
 	
 	// //UI text
@@ -193,13 +201,18 @@ function drawArrow(base, vec, myColor) {
 function resetButtonPressed(){
 	nrSprings = 0;
 	//console.log("pressed");
-	ParticleMass = 0.5;
-	SpringConstant = 5;
-	DampingConstant = 0.5;
+	// ParticleMass = 0.5;
+	// SpringConstant = 5;
+	// DampingConstant = 0.5;
 	cloth = new Cloth(ROWS, COLS, INITIAL_X, INITIAL_Y, SPACING);
-	massSlider.value(0.5);
-	springSlider.value(5);
-	dampingSlider.value(0.5);
+	// massSlider.value(0.5);
+	// springSlider.value(5);
+	// dampingSlider.value(0.5);
+}
+
+function windButtonPressed(){
+	STATIC_WIND = !STATIC_WIND;
+	console.log("WIND CHANGED TO STATIC", STATIC_WIND);
 }
 
  function mousePressed() {
@@ -233,6 +246,11 @@ function pilot(){
 function wind() {
 	PerlinOff += 0.01; // Step forward
 	let v = createVector(DIR.x*2*noise(PerlinOff), DIR.y*2*noise(PerlinOff));
+	return v;
+}
+
+function static_wind() {
+	let v = DIR;
 	return v;
 }
 
