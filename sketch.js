@@ -3,176 +3,144 @@
 
 //---------- Cloth settings ----------
 let cloth;
- const COLS = 20;
- const ROWS = 14;
- const SPACING = 30;
- const INITIAL_X = 120;
- const INITIAL_Y = 100;
- const RENDERFLEX = false;
- const RENDERPOINTS = true;
- const RENDERSPRINGS = false;
- const RENDERTEXTURE = true;
+const COLS = 25;
+const ROWS = 20;
+const SPACING = 15;
+const INITIAL_X = 120;
+const INITIAL_Y = 100;
+const INITIAL_Z = 0;
+let RENDERFLEXSPRINGS = false;
+let RENDERPOINTS = false;
+let RENDERSPRINGS = false;
+let RENDERTEXTURE = true;
 
- //wind
- let WIND;
- let DIR; // Direction of the wind
- let PerlinOff = 0.0; // Step for Perlin noise
+// ------ Default values of cloth----
+const DEFAULTMASS = 0.4;
+const DEFAULTSPRING = 7.5;
+const DEFAULTDAMPING = 0.15;
+const DEFAULTTIMESTEP = 0.1;
 
- //--------- Particle settings --------
- let ParticleMass = 0.5;
- let SpringConstant = 5;
- let DampingConstant = 0.5;
- const SpringAtRest = SPACING + 1;
- const ParticleRadius = 4;
+let STATIC_WIND = false;
 
-const TIMESTEP = 0.1; //JAMES BOND <3
+// -------- Wind settings --------
+let WIND;
+let DIR; // Direction of the wind
+let PerlinOff = 0.0; // Step for Perlin noise
 
- let matrix = [];
- let nrPoints = COLS*ROWS;
- let nrSprings = 0;
+//--------- Particle settings --------
+let ParticleMass;
+let SpringConstant;
+let DampingConstant;
+const SpringAtRest = SPACING;
+const ParticleRadius = 4;
 
- //-------- GUI --------
- //var guiProvider = 'QuickSettings';
- let massSlider;
- let springSlider;
- let dampingSlider;
- let resetButton;
- let gui;
+let TIMESTEP; //JAMES BOND <3 not anymore
 
- let guiContainer;
- let containerWidth;
- let containerHeight;
- let marginX;
- let marginY;
- 
- let elementWidth;
- let elementHeight;
- 
- let draggingArrow; 
- let v0;
- let v1;
- let inconsolata;
- let _text;
+let matrix = [];
+let nrPoints = COLS * ROWS;
+let nrSprings = 0;
 
- //let button;
+let draggingArrow;
+let v0;
+let v1;
+let inconsolata;
+let _text;
+
+//let button;
 let flagimg;
+let gui;
+let lightDir;
 
 function preload() {
-	// inconsolata = loadFont('./Inconsolata.ttf');
-	// console.log(inconsolata);
+
 }
-let uiText;
+
 
 function setup() {
-	createCanvas(windowWidth,windowHeight, WEBGL);
-	flagimg = loadImage('flag2.png');
-	DIR = createVector();
-	
+	createCanvas(windowWidth, windowHeight, WEBGL);
+	flagimg = loadImage('mt_flagga.png');
+	grassimg = loadImage('grass.jpg');
+
+	//console.log(bgimg)
+
+	DIR = createVector(0,0,0);
+
 	WIND = DIR; //Start at specified DIR
 
 	//Create new cloth
-	cloth = new Cloth(ROWS, COLS, INITIAL_X, INITIAL_Y, SPACING);
+	cloth = new Cloth(ROWS, COLS, INITIAL_X, INITIAL_Y, INITIAL_Z, SPACING);
 
+
+
+	gui = new GUI();
 	
-
-	//Create UI
-	//Settings for GUI
-	uiText = new TextUI('');
-	
-	containerWidth = 200;
-	containerHeight = 300;
-	elementWidth = 160;
-	elementHeight = 25;
-	
-	marginX = (containerWidth - elementWidth) / 2;
-	marginY = 40;
-
-	guiContainer = new GuiContainer(900, 200, containerWidth, containerHeight); //x, y, w, h
-
-  	resetButton = createButton("Reset"); 
-	resetButton.size(elementWidth, elementHeight);
-	resetButton.position(965 , 500 - marginY);
-	resetButton.mousePressed(resetButtonPressed);
-
-	massSlider = createSlider(0.1, 1.5, 0.5, 0.05); 
-	massSlider.size(elementWidth, elementHeight);
-	massSlider.position(965, 300);
-	springSlider = createSlider(0.1, 9.9, 5, 0.05); 
-	springSlider.size(elementWidth, elementHeight);
-	springSlider.position(965, 350);
-	dampingSlider = createSlider(0.1, 1.5, 0.5, 0.05);
-	dampingSlider.position(965, 400);
-	dampingSlider.size(elementWidth, elementHeight);
-
-	ParticleMass = massSlider.value();
-	SpringConstant = springSlider.value();
-	DampingConstant = dampingSlider.value();
+	ParticleMass = DEFAULTMASS;
+	SpringConstant = DEFAULTSPRING;
+	DampingConstant = DEFAULTDAMPING;
+	TIMESTEP = DEFAULTTIMESTEP;
 	firstTime = true;
-
-	v0 = createVector(1200, 800);
-  	v1 = createVector(1100, 900);
-	draggingArrow = false;	
 }
 
-// function mousePressed() {
-// 	//console.log(massSlider.value());
-// }
-
 function draw() {
-	translate(-width/2,-height/2)
-	background(50)
+	background(147,195,205);
+
+	//let time = millis();
+	push();
+	//rotate(-1.4, createVector(0,1,0));
+	translate(-width / 2, -height / 2)
 	
-	line(100, 50, 100, height);
-	stroke(256);
-	fill(256);
-	rect(100, 50, 20, height);
-	fill(255,200,0);
-	stroke(255,200,0);
-	ellipse(110, 50, 50);
+	ambientLight(150, 150, 150);
+	lightDir = createVector(500, 500, -1);
+	directionalLight(250, 250, 250, lightDir);
+
+	// push()
+	// translate(lightDir.x, lightDir.y);
+	// fill(0);
+	// noStroke()
+	// sphere(10)
+	// pop()
+
+	fill(255, 200, 0);
+	noStroke();
+	push();
+		translate(110,50);
+		sphere(25);
+		push();
+			translate(0, height/2);
+			rotateX(HALF_PI);
+			noStroke();
+			fill(225);
+			//stroke(100);
+			cylinder(10, 500); //NÄE AJABAJA
+		pop();
+		push();
+			translate(0, height);
+			rotateX(HALF_PI);
+			noStroke();
+			fill(71,112,71);
+			plane(width*10);
+		pop();
+	pop();
+
 
 	//box(0); //maybe needed maybe not
 	cloth.updateCloth();
-	
+	pop();
+
+	push()
+	translate(-width / 2, -height / 2)
+
 	ParticleMass = massSlider.value();
 	SpringConstant = springSlider.value();
 	DampingConstant = dampingSlider.value();
+	TIMESTEP = timestepSlider.value();
 
-	guiContainer.show(mouseX, mouseY);
-	WIND = wind(); // Fluxuation of wind
-
+	gui.renderGUI();
+	pop();
 	
-	// //UI text
-	// uiText.draw("Mass: " + ParticleMass, 1000, 293);
-	// uiText.draw("Spring: " + SpringConstant, 1000, 343);
-	// uiText.draw("Damping: " + DampingConstant, 1000, 393);
-	
-	// console.log(firstime);
-	 if(firstTime){
-	 	v0 = createVector(1200, 800);
-  	 	v1 = createVector(1250, 780);
-	 	drawArrow(v0, v1, 'black');
-	 	firstTime = false;
-	 }
 
-	fill(51)
-	stroke(255);
-	//strokeWeight(5)
-	ellipse(1200, 800, 200,200,50);
-
-	//console.log(draggingArrow);
-	if(draggingArrow){
-		//console.log("dragging");
-		if(abs(1200 - mouseX) < 100 && abs(800 - mouseY) < 100){
-			//mag(v0)
-			//console.log("in circle area");
-			v0.set(1200, 800);
-			v1.set(mouseX, mouseY);
-			//drawArrow(v2, v3, 'black');
-			
-		}
-	}
-	drawArrow(v0, v1.copy().sub(1200, 800), 'white');	
-	DIR = v1.copy().sub(v0).mult(0.1);
+	WIND = STATIC_WIND ? static_wind() : wind(); // Fluxuation of wind
+	//console.log("Wind direction: " + WIND);
 }
 
 // --- ARROW FOR WIND ---
@@ -190,49 +158,26 @@ function drawArrow(base, vec, myColor) {
 	pop();
 }
 
-function resetButtonPressed(){
-	nrSprings = 0;
-	//console.log("pressed");
-	ParticleMass = 0.5;
-	SpringConstant = 5;
-	DampingConstant = 0.5;
-	cloth = new Cloth(ROWS, COLS, INITIAL_X, INITIAL_Y, SPACING);
-	massSlider.value(0.5);
-	springSlider.value(5);
-	dampingSlider.value(0.5);
+function mousePressed() {
+	guiContainer.pressed(mouseX, mouseY);
+	draggingArrow = true;
 }
 
- function mousePressed() {
- 	guiContainer.pressed(mouseX, mouseY);
-	draggingArrow = true; 
- }
-  
 function mouseReleased() {
 	guiContainer.notPressed();
 	draggingArrow = false;
 }
 
-function pilot(){
-
-	p1.calculateForce();
-	p2.calculateForce();
-
-	p1.calculateNextStep();
-	p2.calculateNextStep();
-}
-
-// function wind() {
-// 	let v = createVector();
-
-// 	//Slight variation around dir
-// 	v.x = DIR.x*3*abs(sin(Math.random()));
-// 	v.y = DIR.y*3*abs(sin(Math.random()));
-// 	return v;
-// }
-
 function wind() {
 	PerlinOff += 0.01; // Step forward
-	let v = createVector(DIR.x*2*noise(PerlinOff), DIR.y*2*noise(PerlinOff));
+
+	//DIR lacks z value, add perlin noise in z direction as wind.
+	let v = createVector(DIR.x * 20 * noise(PerlinOff), DIR.y * 20 * noise(PerlinOff), 50 * (noise(PerlinOff)-0.5));
+	return v;
+}
+
+function static_wind() {
+	let v = DIR.copy().mult(10);
 	return v;
 }
 
