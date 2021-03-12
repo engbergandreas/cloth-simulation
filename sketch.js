@@ -1,5 +1,6 @@
 //Initial settings
-
+let EULER = false;
+let RK4 = true;
 
 //---------- Cloth settings ----------
 let cloth;
@@ -172,7 +173,7 @@ function wind() {
 	PerlinOff += 0.01; // Step forward
 
 	//DIR lacks z value, add perlin noise in z direction as wind.
-	let v = createVector(DIR.x * 20 * noise(PerlinOff), DIR.y * 20 * noise(PerlinOff), 50 * (noise(PerlinOff)-0.5));
+	let v = createVector(DIR.x * 20 * noise(PerlinOff), DIR.y * 20 * noise(PerlinOff), DIR.x * 50 * (noise(PerlinOff)-0.5));
 	return v;
 }
 

@@ -37,9 +37,14 @@ class Cloth {
     }
 
     updateCloth() {
-        this.calculateForce();
-        this.stepForward();
-        
+        if(RK4) {
+            this.calculateForce();
+            this.stepForward();
+        }
+        if(EULER) {
+            this.calculateEulerForce();
+            this.calculateEulerNextStep();
+        }
         if(RENDERTEXTURE) 
             this.renderTexture();
         
@@ -64,6 +69,21 @@ class Cloth {
             for(let c = 0; c < this.cols; c++) {
                 // matrix[r][c].calculateNextStep();
                 matrix[r][c].rk4NextStep(TIMESTEP);
+            }
+        }
+    }
+    calculateEulerForce() {
+        for(let r = 0; r < this.rows; r++) {
+            for(let c = 0; c < this.cols; c++) {
+                matrix[r][c].updateValues();
+                matrix[r][c].calculateForce(createVector());
+            }
+        }
+    }
+    calculateEulerNextStep() {
+        for(let r = 0; r < this.rows; r++) {
+            for(let c = 0; c < this.cols; c++) {
+                matrix[r][c].calculateNextStepEuler();
             }
         }
     }

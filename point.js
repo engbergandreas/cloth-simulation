@@ -122,6 +122,21 @@ class Point {
         this.pos.set(newPosition);
     }
 
+    eulerIntegration(x, xDerivate, h) {
+        let derivateCopy = xDerivate.copy();
+        derivateCopy.mult(h);
+        x.add(derivateCopy);
+    }
+    calculateNextStepEuler() {
+        this.acc.x = this.force.x / this.mass;
+        this.acc.y = this.force.y / this.mass;
+        this.acc.z = this.force.z / this.mass;
+
+        this.eulerIntegration(this.vel, this.acc, TIMESTEP);
+        this.eulerIntegration(this.pos, this.vel, TIMESTEP);
+    }
+
+
     drawLine(p2, color) {
         push();
         color = color ? color : 'red'; //if(!color) color ="red" else color = color;

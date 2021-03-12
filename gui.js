@@ -4,6 +4,7 @@ let springSlider;
 let dampingSlider;
 let timestepSlider;
 let resetButton;
+let eulerButton, rk4Button;
 //let windButton;
 let windCheckbox;
 let connectionCheckbox;
@@ -39,7 +40,7 @@ class GUI {
     }
     createGUI() {
 
-        timestepSlider = createSlider(0, 0.4, DEFAULTTIMESTEP, 0.05);
+        timestepSlider = createSlider(0, 0.4, DEFAULTTIMESTEP, 0.01);
         massSlider = createSlider(0.1, 2.5, DEFAULTMASS, 0.05);
         springSlider = createSlider(0.1, 15, DEFAULTSPRING, 0.05);
         dampingSlider = createSlider(0, 1, DEFAULTDAMPING, 0.01);
@@ -53,6 +54,10 @@ class GUI {
         massCheckbox.changed(this.showMasses);
         textureCheckbox = createCheckbox("",true);
         textureCheckbox.changed(this.showTexture);
+        eulerButton = createButton("Euler Integration");
+        eulerButton.mousePressed(this.EulerIntegration);
+        rk4Button = createButton("RK4 Integration");
+        rk4Button.mousePressed(this.rk4Integration);
 
         this.elements.push(timestepSlider);
         this.elements.push(massSlider);
@@ -63,6 +68,8 @@ class GUI {
         this.elements.push(connectionCheckbox);
         this.elements.push(massCheckbox);
         this.elements.push(resetButton);
+        this.elements.push(eulerButton);
+        this.elements.push(rk4Button);
 
         this.setElements();
     }
@@ -104,6 +111,17 @@ class GUI {
         RENDERSPRINGS = false;
         RENDERTEXTURE = true;
         RENDERPOINTS = false;
+        console.log("Euler: ", EULER, " RK4: ", RK4);
+    }
+    EulerIntegration() {
+        EULER = true;
+        RK4 = false;
+        console.log("Euler: ", EULER, " RK4: ", RK4);
+    }
+    rk4Integration() {
+        EULER = false;
+        RK4 = true;
+        console.log("Euler: ", EULER, " RK4: ", RK4);
     }
     
     windChecked() {
