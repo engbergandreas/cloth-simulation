@@ -52,10 +52,6 @@ let flagimg;
 let gui;
 let lightDir;
 
-function preload() {
-
-}
-
 
 function setup() {
 	createCanvas(windowWidth, windowHeight, WEBGL);
@@ -71,8 +67,6 @@ function setup() {
 	//Create new cloth
 	cloth = new Cloth(ROWS, COLS, INITIAL_X, INITIAL_Y, INITIAL_Z, SPACING);
 
-
-
 	gui = new GUI();
 	
 	ParticleMass = DEFAULTMASS;
@@ -80,6 +74,7 @@ function setup() {
 	DampingConstant = DEFAULTDAMPING;
 	TIMESTEP = DEFAULTTIMESTEP;
 	firstTime = true;
+	frameRate(30)
 }
 
 function draw() {
@@ -87,19 +82,12 @@ function draw() {
 
 	//let time = millis();
 	push();
-	//rotate(-1.4, createVector(0,1,0));
+	// rotate(HALF_PI , createVector(0,1,0));
 	translate(-width / 2, -height / 2)
 	
-	ambientLight(150, 150, 150);
-	lightDir = createVector(500, 500, -1);
-	directionalLight(250, 250, 250, lightDir);
-
-	// push()
-	// translate(lightDir.x, lightDir.y);
-	// fill(0);
-	// noStroke()
-	// sphere(10)
-	// pop()
+	//ambientLight(150, 150, 150);
+	//lightDir = createVector(500, 500, -1);
+	//directionalLight(250, 250, 250, lightDir);
 
 	fill(255, 200, 0);
 	noStroke();
@@ -108,11 +96,12 @@ function draw() {
 		sphere(25);
 		push();
 			translate(0, height/2);
-			rotateX(HALF_PI);
+			//rotateX(HALF_PI);
 			noStroke();
 			fill(225);
 			//stroke(100);
-			cylinder(10, 500); //NÄE AJABAJA
+			//cylinder(100, 5); //NÄE AJABAJA
+			box(10,height, 10);
 		pop();
 		push();
 			translate(0, height);
@@ -122,23 +111,20 @@ function draw() {
 			plane(width*10);
 		pop();
 	pop();
-
-
-	//box(0); //maybe needed maybe not
 	cloth.updateCloth();
 	pop();
 
+	//Draw UI
 	push()
 	translate(-width / 2, -height / 2)
+	gui.renderGUI();
+	pop();
+
 
 	ParticleMass = massSlider.value();
 	SpringConstant = springSlider.value();
 	DampingConstant = dampingSlider.value();
 	TIMESTEP = timestepSlider.value();
-
-	gui.renderGUI();
-	pop();
-	
 
 	WIND = STATIC_WIND ? static_wind() : wind(); // Fluxuation of wind
 	//console.log("Wind direction: " + WIND);

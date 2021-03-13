@@ -23,9 +23,11 @@ class Cloth {
 
     setStaticPoints(){
         matrix[0][0].static = true; //top left 
-        //matrix[0][this.cols-1].static = true; //top right
         matrix[this.rows-1][0].static = true; //bottom left
+
+        //matrix[0][this.cols-1].static = true; //top right
         //matrix[this.rows-1][this.cols-1].static = true; //bottom right
+        
         //lock top row
         // for(let c = 0; c < this.cols; c++) {
         //     matrix[0][c].static = true;
@@ -57,7 +59,6 @@ class Cloth {
         for(let r = 0; r < this.rows; r++) {
             for(let c = 0; c < this.cols; c++) {
                 matrix[r][c].updateValues();
-                // matrix[r][c].calculateForce();
                 matrix[r][c].rk4Integration(TIMESTEP);
             }
         }
@@ -96,16 +97,16 @@ class Cloth {
                 if(RENDERSPRINGS) {
                     //draw spring lines between particles
                     if(r != 0 && c != this.cols -1) {
-                        matrix[r][c].drawLine(matrix[r-1][c+1]); //diagonal upwards right
+                        matrix[r][c].drawLine(matrix[r-1][c+1], "red"); //diagonal upwards right
                     }
                     if(r != this.rows - 1 && c != this.cols - 1) {
-                        matrix[r][c].drawLine(matrix[r+1][c+1]); //diagonal downwards right
+                        matrix[r][c].drawLine(matrix[r+1][c+1], "red"); //diagonal downwards right
                     }
                     if(r != this.rows-1) {
-                        matrix[r][c].drawLine(matrix[r+1][c]); //downwards
+                       matrix[r][c].drawLine(matrix[r+1][c], "red"); //downwards
                     }
                     if(c != this.cols -1) {
-                        matrix[r][c].drawLine(matrix[r][c+1]); //right
+                        matrix[r][c].drawLine(matrix[r][c+1], "red"); //right
                     }
                  }
                 

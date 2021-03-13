@@ -27,10 +27,11 @@ class GuiContainer{
 		uiText.draw("Mass: " + ParticleMass, this.x + 100, this.y + 2 *marginY);
 		uiText.draw("Spring: " + SpringConstant, this.x + 100, this.y + 3 * marginY);
 		uiText.draw("Damping: " + DampingConstant, this.x + 100, this.y + 4 * marginY);
-		uiText.draw("- Static wind " , this.x + 115, this.y + 5 * marginY + 11);
-		uiText.draw("- Show texture " , this.x + 115, this.y + 6 * marginY + 11);
-		uiText.draw("- Show connections " , this.x + 115, this.y + 7 * marginY + 11);
-		uiText.draw("- Show masses " , this.x + 115, this.y + 8 * marginY + 11);
+		uiText.draw("FPS: " + frameRate(), this.x + 100, this.y);
+		// uiText.draw("- Static wind " , this.x + 115, this.y + 5 * marginY + 11);
+		// uiText.draw("- Show texture " , this.x + 115, this.y + 6 * marginY + 11);
+		// uiText.draw("- Show connections " , this.x + 115, this.y + 7 * marginY + 11);
+		// uiText.draw("- Show masses " , this.x + 115, this.y + 8 * marginY + 11);
 	
 	}
 

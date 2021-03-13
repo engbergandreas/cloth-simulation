@@ -4,7 +4,7 @@ let springSlider;
 let dampingSlider;
 let timestepSlider;
 let resetButton;
-let eulerButton, rk4Button;
+let eulerIntegration, rk4Integration;
 //let windButton;
 let windCheckbox;
 let connectionCheckbox;
@@ -46,18 +46,18 @@ class GUI {
         dampingSlider = createSlider(0, 1, DEFAULTDAMPING, 0.01);
         resetButton = createButton("Reset");
         resetButton.mousePressed(this.resetButtonPressed);
-        windCheckbox = createCheckbox("",false);
+        windCheckbox = createCheckbox("- Static wind",false).style("color", "white");;
         windCheckbox.changed(this.windChecked);
-        connectionCheckbox = createCheckbox("",false);
+        connectionCheckbox = createCheckbox("- Show connections",false).style("color", "white");;
         connectionCheckbox.changed(this.showGrid);
-        massCheckbox = createCheckbox("",false);
+        massCheckbox = createCheckbox("- Show masses",false).style("color", "white");;
         massCheckbox.changed(this.showMasses);
-        textureCheckbox = createCheckbox("",true);
+        textureCheckbox = createCheckbox("- Show texture",true).style("color", "white");;
         textureCheckbox.changed(this.showTexture);
-        eulerButton = createButton("Euler Integration");
-        eulerButton.mousePressed(this.EulerIntegration);
-        rk4Button = createButton("RK4 Integration");
-        rk4Button.mousePressed(this.rk4Integration);
+        eulerIntegration = createCheckbox(" - Euler Integration").style("color", "white");;
+        eulerIntegration.changed(this.EulerIntegration);
+        rk4Integration = createCheckbox(" - RK4 Integration", true).style("color", "white");
+        rk4Integration.changed(this.rk4Integration);
 
         this.elements.push(timestepSlider);
         this.elements.push(massSlider);
@@ -67,9 +67,9 @@ class GUI {
         this.elements.push(textureCheckbox);
         this.elements.push(connectionCheckbox);
         this.elements.push(massCheckbox);
+        this.elements.push(eulerIntegration);
+        this.elements.push(rk4Integration);
         this.elements.push(resetButton);
-        this.elements.push(eulerButton);
-        this.elements.push(rk4Button);
 
         this.setElements();
     }
@@ -108,20 +108,34 @@ class GUI {
     resetButtonPressed() {
         nrSprings = 0;
         cloth = new Cloth(ROWS, COLS, INITIAL_X, INITIAL_Y, INITIAL_Z, SPACING);
-        RENDERSPRINGS = false;
-        RENDERTEXTURE = true;
-        RENDERPOINTS = false;
         console.log("Euler: ", EULER, " RK4: ", RK4);
     }
     EulerIntegration() {
-        EULER = true;
-        RK4 = false;
+        if(eulerIntegration.checked()) {
+            EULER = true;
+            RK4 = false;
+            rk4Integration.checked(false);
+        }
+        else {
+            EULER = false;
+            RK4 = true;
+            rk4Integration.checked(true);
+        }
         console.log("Euler: ", EULER, " RK4: ", RK4);
+
     }
     rk4Integration() {
-        EULER = false;
-        RK4 = true;
+        if(rk4Integration.checked()) {
+            EULER = false;
+            RK4 = true;
+            eulerIntegration.checked(false);
+        } else {
+            EULER = true;
+            RK4 = false;
+            eulerIntegration.checked(true);
+        }
         console.log("Euler: ", EULER, " RK4: ", RK4);
+
     }
     
     windChecked() {
@@ -135,7 +149,7 @@ class GUI {
         RENDERPOINTS = !RENDERPOINTS;
     }
     showTexture() {
-        RENDERTEXTURE = !RENDERTEXTURE;
+        RENDERTEXTURE = !RENDERTEXTURE;       
     }
 }
 

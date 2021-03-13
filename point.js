@@ -138,13 +138,13 @@ class Point {
 
 
     drawLine(p2, color) {
-        push();
-        color = color ? color : 'red'; //if(!color) color ="red" else color = color;
+        //push();
+        //color = color ? color : 'red'; //if(!color) color ="red" else color = color;
         stroke(color);
         fill(255);
         strokeWeight(1);
         line(this.pos.x, this.pos.y, this.pos.z, p2.pos.x, p2.pos.y, p2.pos.z);
-        pop();
+        //pop();
     }
     
     render() {
