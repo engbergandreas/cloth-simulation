@@ -28,10 +28,10 @@ class GUI {
 	    uiText = new TextUI('');
 
         this.x = width - CONTAINERWIDTH - 100;
-        this.y = 200;
+        this.y = 50;
         
         this.elements = [];
-        this.circleOrigin = createVector(width - 200, height - 200);
+        this.circleOrigin = createVector(width - 200, height - 150);
         this.circleEndPoint = createVector(this.circleOrigin.x + 50, this.circleOrigin.y - 20);
 
         this.createGUI();
